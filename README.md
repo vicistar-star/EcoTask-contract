@@ -1,4 +1,3 @@
-cat > /home/claude/ecotask/ecotask-contracts/README.md << 'EOF'
 <div align="center">
 
 # 🔗 ecotask-contracts
