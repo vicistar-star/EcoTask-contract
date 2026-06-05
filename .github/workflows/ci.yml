@@ -11,4 +11,6 @@ jobs:
           target: wasm32-unknown-unknown
           components: clippy, rustfmt
       - run: cargo build --target wasm32-unknown-unknown --release
+      - run: cargo test
+      - run: cargo clippy -- -D warnings
       - run: cargo fmt --check
