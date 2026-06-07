@@ -8,4 +8,9 @@ crate-type = ["cdylib"]
 doctest = false
 
 [dependencies]
-soroban-sdk = { version = "21.0.0", features = ["testutils"] }
+soroban-sdk = "26.0.1"
+eco-token = { path = "../eco-token" }
+task-registry = { path = "../task-registry" }
+
+[dev-dependencies]
+soroban-sdk = { version = "26.0.1", features = ["testutils"] }

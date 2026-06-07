@@ -76,7 +76,7 @@ impl RegistryContract {
 
     pub fn complete_task(e: Env, caller: Address, task_id: u64, user: Address) {
         caller.require_auth();
-        access::require_admin(&e, &caller);
+        access::require_sponsor(&e, &caller);
 
         let mut task = match storage::read_task(&e, task_id) {
             Some(task) => task,
