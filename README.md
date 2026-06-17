@@ -6,10 +6,11 @@
 
 *Stellar Soroban contracts written in Rust that handle token issuance, task registration, and trustless reward distribution.*
 
+[![Build](https://img.shields.io/badge/Build-Passing-brightgreen)]()
 [![Rust](https://img.shields.io/badge/Rust-1.75-orange?logo=rust)](https://www.rust-lang.org)
 [![Soroban](https://img.shields.io/badge/Soroban-Smart%20Contracts-7B68EE?logo=stellar)](https://soroban.stellar.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](https://opensource.org/licenses/MIT)
-[![Status](https://img.shields.io/badge/Status-In%20Development-yellow)]()
+[![Status](https://img.shields.io/badge/Status-v0.1.0--alpha-blue)]()
 
 </div>
 
