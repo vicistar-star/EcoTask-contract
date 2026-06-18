@@ -59,6 +59,34 @@ The verification and payout engine.
 
 ---
 
+## 🚀 Quick Start for Contributors
+
+Get up and running in minutes:
+
+1.  **Install Prerequisites**:
+    ```bash
+    rustup target add wasm32-unknown-unknown
+    cargo install --locked soroban-cli
+    ```
+2.  **Clone & Build**:
+    ```bash
+    git clone https://github.com/ecotask/ecotask-contracts.git
+    cd ecotask-contracts
+    make build
+    ```
+3.  **Run Tests**:
+    ```bash
+    make test
+    ```
+
+For more details, see [CONTRIBUTING.md](CONTRIBUTING.md).
+
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guidelines](CONTRIBUTING.md) and [Code of Conduct](CODE_OF_CONDUCT.md) for more information on how to get involved.
+
+---
+
 ## 🏗️ Folder Structure
 
 ```

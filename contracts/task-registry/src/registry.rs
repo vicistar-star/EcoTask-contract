@@ -1,6 +1,15 @@
-use soroban_sdk::{contract, contractimpl, Address, BytesN, Env, String, Symbol};
 use crate::{access, storage};
+use soroban_sdk::{contract, contractimpl, contractevent, Address, BytesN, Env, String, Symbol};
 pub use storage::{Task, TaskStatus};
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RegistryEvent {
+    TaskCreated(Address, u64),
+    TaskCompleted(Address, u64),
+    TaskExpired(u64),
+    SponsorAdded(Address),
+}
 
 #[contract]
 pub struct RegistryContract;
@@ -59,10 +68,8 @@ impl RegistryContract {
 
         storage::write_task(&e, &task);
 
-        e.events().publish(
-            (Symbol::new(&e, "task_created"), creator, task_id),
-            (),
-        );
+        e.events()
+            .publish((), RegistryEvent::TaskCreated(creator, task_id));
 
         task_id
     }
@@ -104,10 +111,8 @@ impl RegistryContract {
         storage::write_task(&e, &task);
         storage::mark_completed(&e, task_id, &user);
 
-        e.events().publish(
-            (Symbol::new(&e, "task_completed"), user, task_id),
-            (),
-        );
+        e.events()
+            .publish((), RegistryEvent::TaskCompleted(user, task_id));
     }
 
     pub fn expire_task(e: Env, caller: Address, task_id: u64) {
@@ -138,14 +143,14 @@ impl RegistryContract {
 
 #[cfg(test)]
 mod test {
-    use soroban_sdk::{Env, Address, String, BytesN};
-    use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger as _};
     use crate::{RegistryContract, RegistryContractClient, TaskStatus};
+    use soroban_sdk::testutils::{Address as _, BytesN as _, Ledger as _};
+    use soroban_sdk::{Address, BytesN, Env, String};
 
     fn setup() -> (Env, Address, RegistryContractClient<'static>) {
         let e = Env::default();
         let admin = Address::generate(&e);
-        let contract_id = e.register_contract(None, RegistryContract);
+        let contract_id = e.register(None, RegistryContract);
         let client = RegistryContractClient::new(&e, &contract_id);
 
         client.initialize(&admin);
@@ -172,7 +177,7 @@ mod test {
 
     #[test]
     fn test_create_and_get_task() {
-        let (e, admin, client) = setup();
+        let (e, _admin, client) = setup();
         e.mock_all_auths();
 
         let task_type = String::from_str(&e, "tree-planting");
@@ -194,7 +199,13 @@ mod test {
         e.mock_all_auths();
 
         let user = Address::generate(&e);
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "trash-collection"), 1, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "trash-collection"),
+            1,
+            1000,
+        );
 
         client.complete_task(&admin, &task_id, &user);
 
@@ -211,7 +222,13 @@ mod test {
         e.mock_all_auths();
 
         let user = Address::generate(&e);
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "ocean-cleanup"), 2, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "ocean-cleanup"),
+            2,
+            1000,
+        );
 
         client.complete_task(&admin, &task_id, &user);
         client.complete_task(&admin, &task_id, &user);
@@ -224,7 +241,13 @@ mod test {
 
         let user1 = Address::generate(&e);
         let user2 = Address::generate(&e);
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "tree-planting"), 2, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            2,
+            1000,
+        );
 
         client.complete_task(&admin, &task_id, &user1);
         let task = client.get_task(&task_id);
@@ -242,7 +265,13 @@ mod test {
         let (e, admin, client) = setup();
         e.mock_all_auths();
 
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "tree-planting"), 1, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            1,
+            1000,
+        );
 
         client.expire_task(&admin, &task_id);
 
@@ -253,7 +282,7 @@ mod test {
     #[test]
     #[should_panic(expected = "unauthorized")]
     fn test_unauthorized_creator() {
-        let (e, admin, client) = setup();
+        let (e, _admin, client) = setup();
         e.mock_all_auths();
 
         let attacker = Address::generate(&e);
@@ -307,7 +336,13 @@ mod test {
         let (e, admin, client) = setup();
         e.mock_all_auths();
 
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "tree-planting"), 1, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            1,
+            1000,
+        );
 
         client.expire_task(&admin, &task_id);
         client.expire_task(&admin, &task_id);
@@ -322,7 +357,13 @@ mod test {
         let user = Address::generate(&e);
 
         e.ledger().set_timestamp(1000);
-        let task_id = create_test_task(&client, &admin, &String::from_str(&e, "tree-planting"), 1, 1000);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            1,
+            1000,
+        );
 
         e.ledger().set_timestamp(3000);
         client.complete_task(&admin, &task_id, &user);

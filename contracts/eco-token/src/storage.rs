@@ -1,4 +1,4 @@
-use soroban_sdk::{Address, Env, String, symbol_short};
+use soroban_sdk::{symbol_short, Address, Env, String};
 
 pub fn write_balance(e: &Env, addr: &Address, amount: i128) {
     let key = (symbol_short!("balance"), addr.clone());
@@ -25,7 +25,9 @@ pub fn has_admin(e: &Env) -> bool {
 pub fn write_metadata(e: &Env, name: &String, symbol: &String, decimal: &u32) {
     e.storage().instance().set(&symbol_short!("name"), name);
     e.storage().instance().set(&symbol_short!("symbol"), symbol);
-    e.storage().instance().set(&symbol_short!("decimal"), decimal);
+    e.storage()
+        .instance()
+        .set(&symbol_short!("decimal"), decimal);
 }
 
 pub fn read_name(e: &Env) -> String {
@@ -33,17 +35,28 @@ pub fn read_name(e: &Env) -> String {
 }
 
 pub fn read_symbol(e: &Env) -> String {
-    e.storage().instance().get(&symbol_short!("symbol")).unwrap()
+    e.storage()
+        .instance()
+        .get(&symbol_short!("symbol"))
+        .unwrap()
 }
 
 pub fn read_decimal(e: &Env) -> u32 {
-    e.storage().instance().get(&symbol_short!("decimal")).unwrap()
+    e.storage()
+        .instance()
+        .get(&symbol_short!("decimal"))
+        .unwrap()
 }
 
 pub fn write_supply(e: &Env, amount: i128) {
-    e.storage().instance().set(&symbol_short!("supply"), &amount);
+    e.storage()
+        .instance()
+        .set(&symbol_short!("supply"), &amount);
 }
 
 pub fn read_supply(e: &Env) -> i128 {
-    e.storage().instance().get(&symbol_short!("supply")).unwrap_or(0)
+    e.storage()
+        .instance()
+        .get(&symbol_short!("supply"))
+        .unwrap_or(0)
 }

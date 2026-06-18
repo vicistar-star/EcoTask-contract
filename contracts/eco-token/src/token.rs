@@ -1,5 +1,13 @@
-use soroban_sdk::{contract, contractimpl, Address, Env, String, Symbol};
 use crate::storage;
+use soroban_sdk::{contract, contractimpl, contractevent, Address, Env, String, Symbol};
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum TokenEvent {
+    Mint(Address, Address, i128),
+    Transfer(Address, Address, i128),
+    Burn(Address, i128),
+}
 
 #[contract]
 pub struct TokenContract;
@@ -24,15 +32,17 @@ impl TokenContract {
         }
 
         let balance = storage::read_balance(&e, &to);
-        storage::write_balance(&e, &to, balance.checked_add(amount).expect("balance overflow"));
+        storage::write_balance(
+            &e,
+            &to,
+            balance.checked_add(amount).expect("balance overflow"),
+        );
 
         let supply = storage::read_supply(&e);
         storage::write_supply(&e, supply.checked_add(amount).expect("supply overflow"));
 
-        e.events().publish(
-            (Symbol::new(&e, "mint"), admin, to.clone()),
-            amount,
-        );
+        e.events()
+            .publish((), TokenEvent::Mint(admin, to.clone(), amount));
     }
 
     pub fn transfer(e: Env, from: Address, to: Address, amount: i128) {
@@ -47,14 +57,22 @@ impl TokenContract {
             panic!("insufficient balance");
         }
 
-        storage::write_balance(&e, &from, from_balance.checked_sub(amount).expect("balance underflow"));
+        storage::write_balance(
+            &e,
+            &from,
+            from_balance.checked_sub(amount).expect("balance underflow"),
+        );
 
         let to_balance = storage::read_balance(&e, &to);
-        storage::write_balance(&e, &to, to_balance.checked_add(amount).expect("balance overflow"));
+        storage::write_balance(
+            &e,
+            &to,
+            to_balance.checked_add(amount).expect("balance overflow"),
+        );
 
         e.events().publish(
-            (Symbol::new(&e, "transfer"), from.clone(), to.clone()),
-            amount,
+            (),
+            TokenEvent::Transfer(from.clone(), to.clone(), amount),
         );
     }
 
@@ -85,15 +103,15 @@ impl TokenContract {
 
 #[cfg(test)]
 mod test {
-    use soroban_sdk::{Env, Address, String};
-    use soroban_sdk::testutils::Address as _;
     use crate::{TokenContract, TokenContractClient};
+    use soroban_sdk::testutils::Address as _;
+    use soroban_sdk::{Address, Env, String};
 
     #[test]
     fn test_initialize_and_metadata() {
         let e = Env::default();
         let admin = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -114,7 +132,7 @@ mod test {
         let e = Env::default();
         let admin = Address::generate(&e);
         let user = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -137,7 +155,7 @@ mod test {
         let admin = Address::generate(&e);
         let from = Address::generate(&e);
         let to = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -161,7 +179,7 @@ mod test {
         let e = Env::default();
         let admin = Address::generate(&e);
         let user = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -182,7 +200,7 @@ mod test {
         let admin = Address::generate(&e);
         let from = Address::generate(&e);
         let to = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -202,7 +220,7 @@ mod test {
         let e = Env::default();
         let admin = Address::generate(&e);
         let user = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -220,7 +238,7 @@ mod test {
     fn test_double_initialize_fails() {
         let e = Env::default();
         let admin = Address::generate(&e);
-        let contract_id = e.register_contract(None, TokenContract);
+        let contract_id = e.register(None, TokenContract);
         let client = TokenContractClient::new(&e, &contract_id);
 
         client.initialize(
@@ -238,5 +256,3 @@ mod test {
         );
     }
 }
-
-

@@ -1,6 +1,15 @@
-use soroban_sdk::{contract, contractimpl, vec, Address, Env, IntoVal, String, Symbol, Val};
 use crate::storage;
+use soroban_sdk::{contract, contractimpl, contractevent, vec, Address, Env, IntoVal, String, Symbol, Val};
 pub use storage::{Verification, VerificationStatus};
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum RewardEvent {
+    ProofSubmitted(Address, Address, u64),
+    RewardPaid(Address, Address, u64, i128),
+    ProofRejected(Address, Address, u64),
+    DisputeRaised(Address, u64),
+}
 
 #[contract]
 pub struct RewardEngine;
@@ -29,13 +38,7 @@ impl RewardEngine {
         storage::write_oracle(&e, &new_oracle);
     }
 
-    pub fn submit_proof(
-        e: Env,
-        oracle: Address,
-        user: Address,
-        task_id: u64,
-        proof_cid: String,
-    ) {
+    pub fn submit_proof(e: Env, oracle: Address, user: Address, task_id: u64, proof_cid: String) {
         oracle.require_auth();
         let stored_oracle = storage::read_oracle(&e);
         if oracle != stored_oracle {
@@ -60,12 +63,18 @@ impl RewardEngine {
         storage::write_verification(&e, task_id, &user, &verification);
 
         e.events().publish(
-            (Symbol::new(&e, "proof_submitted"), oracle, user, task_id),
             (),
+            RewardEvent::ProofSubmitted(oracle, user, task_id),
         );
     }
 
-    pub fn approve_proof(e: Env, oracle: Address, user: Address, task_id: u64, reward_amount: i128) {
+    pub fn approve_proof(
+        e: Env,
+        oracle: Address,
+        user: Address,
+        task_id: u64,
+        reward_amount: i128,
+    ) {
         oracle.require_auth();
         let stored_oracle = storage::read_oracle(&e);
         if oracle != stored_oracle {
@@ -102,16 +111,12 @@ impl RewardEngine {
         e.invoke_contract::<Val>(
             &token_id,
             &Symbol::new(&e, "mint"),
-            vec![
-                &e,
-                user.clone().into_val(&e),
-                reward_amount.into_val(&e),
-            ],
+            vec![&e, user.clone().into_val(&e), reward_amount.into_val(&e)],
         );
 
         e.events().publish(
-            (Symbol::new(&e, "reward_paid"), oracle, user, task_id, reward_amount),
             (),
+            RewardEvent::RewardPaid(oracle, user, task_id, reward_amount),
         );
     }
 
@@ -136,8 +141,8 @@ impl RewardEngine {
         storage::write_verification(&e, task_id, &user, &verification);
 
         e.events().publish(
-            (Symbol::new(&e, "proof_rejected"), oracle, user, task_id),
             (),
+            RewardEvent::ProofRejected(oracle, user, task_id),
         );
     }
 
@@ -157,8 +162,8 @@ impl RewardEngine {
         storage::write_verification(&e, task_id, &user, &verification);
 
         e.events().publish(
-            (Symbol::new(&e, "proof_disputed"), caller, user, task_id),
             (),
+            RewardEvent::DisputeRaised(user, task_id),
         );
     }
 
@@ -172,13 +177,13 @@ impl RewardEngine {
 
 #[cfg(test)]
 mod test {
-    use soroban_sdk::{Env, Address, String};
+    use crate::{RewardEngine, RewardEngineClient, VerificationStatus};
     use soroban_sdk::testutils::Address as _;
     use soroban_sdk::testutils::BytesN;
-    use crate::{RewardEngine, RewardEngineClient, VerificationStatus};
+    use soroban_sdk::{Address, Env, String};
 
     fn deploy_token(e: &Env, admin: &Address) -> Address {
-        let token_id = e.register_contract(None, eco_token::TokenContract);
+        let token_id = e.register(None, eco_token::TokenContract);
         let token_client = eco_token::TokenContractClient::new(e, &token_id);
         token_client.initialize(
             admin,
@@ -190,13 +195,20 @@ mod test {
     }
 
     fn deploy_registry(e: &Env, admin: &Address) -> Address {
-        let reg_id = e.register_contract(None, task_registry::RegistryContract);
+        let reg_id = e.register(None, task_registry::RegistryContract);
         let reg_client = task_registry::RegistryContractClient::new(e, &reg_id);
         reg_client.initialize(admin);
         reg_id
     }
 
-    fn setup() -> (Env, Address, Address, Address, u64, RewardEngineClient<'static>) {
+    fn setup() -> (
+        Env,
+        Address,
+        Address,
+        Address,
+        u64,
+        RewardEngineClient<'static>,
+    ) {
         let e = Env::default();
         let admin = Address::generate(&e);
         let oracle = Address::generate(&e);
@@ -205,7 +217,7 @@ mod test {
         let token_id = deploy_token(&e, &admin);
         let reg_id = deploy_registry(&e, &admin);
 
-        let engine_id = e.register_contract(None, RewardEngine);
+        let engine_id = e.register(None, RewardEngine);
         let engine_client = RewardEngineClient::new(&e, &engine_id);
 
         e.mock_all_auths_allowing_non_root_auth();
@@ -266,7 +278,7 @@ mod test {
         let token = Address::generate(&e);
         let registry = Address::generate(&e);
 
-        let engine_id = e.register_contract(None, RewardEngine);
+        let engine_id = e.register(None, RewardEngine);
         let engine_client = RewardEngineClient::new(&e, &engine_id);
 
         engine_client.initialize(&admin, &token, &registry, &admin);
@@ -321,7 +333,7 @@ mod test {
         let token_id = deploy_token(&e, &admin);
         let reg_id = deploy_registry(&e, &admin);
 
-        let engine_id = e.register_contract(None, RewardEngine);
+        let engine_id = e.register(None, RewardEngine);
         let engine_client = RewardEngineClient::new(&e, &engine_id);
 
         let reg_client = task_registry::RegistryContractClient::new(&e, &reg_id);

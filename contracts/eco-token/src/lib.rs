@@ -1,5 +1,5 @@
 #![no_std]
-mod token;
 mod storage;
+mod token;
 
 pub use token::*;
