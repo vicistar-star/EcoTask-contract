@@ -125,6 +125,34 @@ impl TokenContract {
     pub fn admin(e: Env) -> Address {
         storage::read_admin(&e)
     }
+
+    pub fn burn(e: Env, from: Address, amount: i128) {
+        from.require_auth();
+
+        if amount <= 0 {
+            panic!("amount must be positive");
+        }
+
+        let balance = storage::read_balance(&e, &from);
+        if balance < amount {
+            panic!("insufficient balance");
+        }
+
+        storage::write_balance(
+            &e,
+            &from,
+            balance.checked_sub(amount).expect("balance underflow"),
+        );
+
+        let supply = storage::read_supply(&e);
+        storage::write_supply(&e, supply.checked_sub(amount).expect("supply underflow"));
+
+        BurnEvent {
+            from: from.clone(),
+            amount,
+        }
+        .publish(&e);
+    }
 }
 
 #[cfg(test)]
@@ -280,5 +308,69 @@ mod test {
             &String::from_str(&e, "ECO"),
             &7,
         );
+    }
+
+    #[test]
+    fn test_burn() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&user, &1000);
+        client.burn(&user, &400);
+
+        assert_eq!(client.balance(&user), 600);
+        assert_eq!(client.total_supply(), 600);
+    }
+
+    #[test]
+    #[should_panic(expected = "insufficient balance")]
+    fn test_burn_more_than_balance() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&user, &100);
+        client.burn(&user, &200);
+    }
+
+    #[test]
+    #[should_panic(expected = "amount must be positive")]
+    fn test_burn_zero_amount() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.burn(&user, &0);
     }
 }
