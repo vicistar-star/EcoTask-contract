@@ -73,6 +73,18 @@ pub fn add_sponsor(e: &Env, sponsor: &Address) {
     e.storage().instance().set(&key, &sponsors);
 }
 
+pub fn remove_sponsor(e: &Env, sponsor: &Address) {
+    let key = DataKey::Sponsors;
+    let sponsors: Vec<Address> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
+    let mut new_sponsors: Vec<Address> = Vec::new(e);
+    for s in sponsors.iter() {
+        if s != *sponsor {
+            new_sponsors.push_back(s);
+        }
+    }
+    e.storage().instance().set(&key, &new_sponsors);
+}
+
 pub fn is_sponsor(e: &Env, addr: &Address) -> bool {
     let key = DataKey::Sponsors;
     let sponsors: Vec<Address> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));

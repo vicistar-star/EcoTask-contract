@@ -31,6 +31,13 @@ pub struct SponsorAddedEvent {
     pub sponsor: Address,
 }
 
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SponsorRemovedEvent {
+    #[topic]
+    pub sponsor: Address,
+}
+
 #[contract]
 pub struct RegistryContract;
 
@@ -47,6 +54,14 @@ impl RegistryContract {
         caller.require_auth();
         access::require_admin(&e, &caller);
         storage::add_sponsor(&e, &sponsor);
+        SponsorAddedEvent { sponsor }.publish(&e);
+    }
+
+    pub fn remove_sponsor(e: Env, caller: Address, sponsor: Address) {
+        caller.require_auth();
+        access::require_admin(&e, &caller);
+        storage::remove_sponsor(&e, &sponsor);
+        SponsorRemovedEvent { sponsor }.publish(&e);
     }
 
     pub fn create_task(
@@ -352,6 +367,61 @@ mod test {
 
         let task = client.get_task(&task_id);
         assert_eq!(task.creator, sponsor);
+    }
+
+    #[test]
+    fn test_remove_sponsor() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let sponsor = Address::generate(&e);
+        client.add_sponsor(&admin, &sponsor);
+
+        let loc_hash: BytesN<32> = BytesN::random(&e);
+        client.create_task(
+            &sponsor,
+            &String::from_str(&e, "tree-planting"),
+            &loc_hash,
+            &1000,
+            &1,
+            &(e.ledger().timestamp() + 1000),
+        );
+
+        client.remove_sponsor(&admin, &sponsor);
+    }
+
+    #[test]
+    #[should_panic(expected = "unauthorized")]
+    fn test_removed_sponsor_cannot_create_task() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let sponsor = Address::generate(&e);
+        client.add_sponsor(&admin, &sponsor);
+        client.remove_sponsor(&admin, &sponsor);
+
+        let loc_hash: BytesN<32> = BytesN::random(&e);
+        client.create_task(
+            &sponsor,
+            &String::from_str(&e, "tree-planting"),
+            &loc_hash,
+            &1000,
+            &1,
+            &(e.ledger().timestamp() + 1000),
+        );
+    }
+
+    #[test]
+    #[should_panic(expected = "unauthorized")]
+    fn test_remove_sponsor_non_admin() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let sponsor = Address::generate(&e);
+        client.add_sponsor(&admin, &sponsor);
+
+        let non_admin = Address::generate(&e);
+        client.remove_sponsor(&non_admin, &sponsor);
     }
 
     #[test]
