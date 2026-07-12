@@ -633,4 +633,135 @@ mod test {
 
         assert_eq!(client.allowance(&owner, &spender), 0);
     }
+
+    #[test]
+    #[should_panic(expected = "amount must be positive")]
+    fn test_mint_negative_amount() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&user, &-100);
+    }
+
+    #[test]
+    #[should_panic(expected = "amount must be positive")]
+    fn test_transfer_negative_amount() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let from = Address::generate(&e);
+        let to = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&from, &1000);
+        client.transfer(&from, &to, &-50);
+    }
+
+    #[test]
+    #[should_panic(expected = "amount must be positive")]
+    fn test_burn_negative_amount() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.burn(&user, &-100);
+    }
+
+    #[test]
+    fn test_transfer_to_self() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&user, &1000);
+        client.transfer(&user, &user, &500);
+
+        assert_eq!(client.balance(&user), 1000);
+    }
+
+    #[test]
+    fn test_approve_overwrites_previous() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let owner = Address::generate(&e);
+        let spender = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.approve(&owner, &spender, &500, &(e.ledger().sequence() + 100));
+        assert_eq!(client.allowance(&owner, &spender), 500);
+
+        client.approve(&owner, &spender, &200, &(e.ledger().sequence() + 50));
+        assert_eq!(client.allowance(&owner, &spender), 200);
+    }
+
+    #[test]
+    fn test_burn_entire_balance() {
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let user = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&user, &500);
+        client.burn(&user, &500);
+
+        assert_eq!(client.balance(&user), 0);
+        assert_eq!(client.total_supply(), 0);
+    }
 }
