@@ -1,4 +1,4 @@
-use soroban_sdk::{contracttype, Address, Env, String};
+use soroban_sdk::{contracttype, Address, Env, String, Vec};
 
 #[derive(Clone, Debug, PartialEq)]
 #[contracttype]
@@ -32,6 +32,14 @@ pub enum DataKey {
     Verification(u64, Address),
     MinReward,
     MaxReward,
+    VerificationList,
+}
+
+#[derive(Clone, Debug)]
+#[contracttype]
+pub struct VerificationKey {
+    pub task_id: u64,
+    pub user: Address,
 }
 
 pub fn write_admin(e: &Env, admin: &Address) {
@@ -100,4 +108,19 @@ pub fn read_min_reward(e: &Env) -> Option<i128> {
 
 pub fn read_max_reward(e: &Env) -> Option<i128> {
     e.storage().instance().get(&DataKey::MaxReward)
+}
+
+pub fn push_verification_key(e: &Env, task_id: u64, user: &Address) {
+    let key = DataKey::VerificationList;
+    let mut list: Vec<VerificationKey> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
+    list.push_back(VerificationKey {
+        task_id,
+        user: user.clone(),
+    });
+    e.storage().instance().set(&key, &list);
+}
+
+pub fn read_verification_keys(e: &Env) -> Vec<VerificationKey> {
+    let key = DataKey::VerificationList;
+    e.storage().instance().get(&key).unwrap_or(Vec::new(e))
 }

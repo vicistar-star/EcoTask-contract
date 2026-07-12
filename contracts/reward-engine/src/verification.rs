@@ -118,6 +118,7 @@ impl RewardEngine {
         };
 
         storage::write_verification(&e, task_id, &user, &verification);
+        storage::push_verification_key(&e, task_id, &user);
 
         ProofSubmittedEvent {
             oracle,
@@ -323,6 +324,19 @@ impl RewardEngine {
             Some(v) => v,
             None => panic!("verification not found"),
         }
+    }
+
+    pub fn get_pending_verifications(e: Env) -> soroban_sdk::Vec<Verification> {
+        let keys = storage::read_verification_keys(&e);
+        let mut pending: soroban_sdk::Vec<Verification> = soroban_sdk::Vec::new(&e);
+        for key in keys.iter() {
+            if let Some(v) = storage::read_verification(&e, key.task_id, &key.user) {
+                if v.status == VerificationStatus::Pending {
+                    pending.push_back(v);
+                }
+            }
+        }
+        pending
     }
 }
 
@@ -604,5 +618,39 @@ mod test {
         e.mock_all_auths_allowing_non_root_auth();
 
         client.set_reward_range(&admin, &2000, &500);
+    }
+
+    #[test]
+    fn test_get_pending_verifications() {
+        let (e, _admin, oracle, user, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let proof_cid = String::from_str(&e, "QmPending1");
+        client.submit_proof(&oracle, &user, &task_id, &proof_cid);
+
+        let pending = client.get_pending_verifications();
+        assert_eq!(pending.len(), 1);
+
+        client.approve_proof(&oracle, &user, &task_id, &1000);
+
+        let pending = client.get_pending_verifications();
+        assert_eq!(pending.len(), 0);
+    }
+
+    #[test]
+    fn test_get_pending_verifications_multiple() {
+        let (e, _admin, oracle, user1, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let user2 = Address::generate(&e);
+
+        let proof1 = String::from_str(&e, "QmPend1");
+        client.submit_proof(&oracle, &user1, &task_id, &proof1);
+
+        let proof2 = String::from_str(&e, "QmPend2");
+        client.submit_proof(&oracle, &user2, &task_id, &proof2);
+
+        let pending = client.get_pending_verifications();
+        assert_eq!(pending.len(), 2);
     }
 }
