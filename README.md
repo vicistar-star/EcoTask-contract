@@ -95,10 +95,9 @@ ecotask-contracts/
 │   ├── eco-token/
 │   │   ├── src/
 │   │   │   ├── lib.rs            # Contract entry point
-│   │   │   ├── token.rs          # Token logic (mint, transfer, burn)
+│   │   │   ├── token.rs          # Token logic (mint, transfer, burn, approve)
 │   │   │   └── storage.rs        # On-chain state management
-│   │   ├── Cargo.toml
-│   │   └── README.md
+│   │   └── Cargo.toml
 │   │
 │   ├── task-registry/
 │   │   ├── src/
@@ -106,27 +105,27 @@ ecotask-contracts/
 │   │   │   ├── registry.rs       # Task CRUD operations
 │   │   │   ├── access.rs         # Role-based access control
 │   │   │   └── storage.rs        # On-chain state management
-│   │   ├── Cargo.toml
-│   │   └── README.md
+│   │   └── Cargo.toml
 │   │
 │   └── reward-engine/
 │       ├── src/
 │       │   ├── lib.rs            # Contract entry point
-│       │   ├── verification.rs   # Proof validation logic
-│       │   ├── payout.rs         # Token reward distribution
+│       │   ├── verification.rs   # Proof validation and reward logic
 │       │   └── storage.rs        # On-chain state management
-│       ├── Cargo.toml
-│       └── README.md
+│       ├── tests/
+│       │   └── full_lifecycle_test.rs  # Cross-contract integration tests
+│       └── Cargo.toml
 │
 ├── scripts/
 │   ├── deploy.sh                 # Deploy contracts to testnet/mainnet
 │   ├── invoke.sh                 # Helper to call contract functions
-│   └── fund-accounts.sh          # Fund test accounts with friendbot
+│   ├── fund-accounts.sh          # Fund test accounts with friendbot
+│   ├── verify-deploy.sh          # Verify deployed contract state
+│   └── integration-test.sh       # End-to-end integration test runner
 │
-├── tests/
-│   ├── eco_token_test.rs
-│   ├── task_registry_test.rs
-│   └── reward_engine_test.rs
+├── .github/
+│   └── workflows/
+│       └── ci.yml                # CI pipeline (build, test, lint, fmt)
 │
 ├── Cargo.toml                    # Workspace config
 └── README.md
