@@ -65,7 +65,7 @@ Get up and running in minutes:
 
 1.  **Install Prerequisites**:
     ```bash
-    rustup target add wasm32-unknown-unknown
+    rustup target add wasm32v1-none
     cargo install --locked soroban-cli
     ```
 2.  **Clone & Build**:
@@ -146,7 +146,7 @@ ecotask-contracts/
 cargo install --locked soroban-cli
 
 # Add the WebAssembly target
-rustup target add wasm32-unknown-unknown
+rustup target add wasm32v1-none
 ```
 
 ### Build
@@ -157,11 +157,11 @@ git clone https://github.com/ecotask-network/ecotask-contracts.git
 cd ecotask-contracts
 
 # Build all contracts
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32v1-none --release
 
 # Build a specific contract
 cd contracts/eco-token
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32v1-none --release
 ```
 
 ### Test
@@ -186,7 +186,7 @@ soroban network add testnet \
 
 # Deploy the ECO token contract
 soroban contract deploy \
-  --wasm target/wasm32-unknown-unknown/release/eco_token.wasm \
+  --wasm target/wasm32v1-none/release/eco_token.wasm \
   --network testnet \
   --source YOUR_SECRET_KEY
 

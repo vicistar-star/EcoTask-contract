@@ -19,7 +19,13 @@ To build and test the smart contracts, you will need:
 
 - [Rust](https://www.rust-lang.org/tools/install) (latest stable version, at least 1.75+)
 - [Soroban CLI](https://soroban.stellar.org/docs/getting-started/setup#install-the-soroban-cli)
-- `wasm32-unknown-unknown` target: `rustup target add wasm32-unknown-unknown`
+- `wasm32v1-none` target: `rustup target add wasm32v1-none`
+
+> **Note:** This project uses `wasm32v1-none` (not the legacy `wasm32-unknown-unknown`).
+> The `wasm32v1-none` target is required by Soroban SDK v20+ and produces smaller WASM
+> binaries with lower deployment costs. If you are using an older Soroban CLI (< v20),
+> you will need `wasm32-unknown-unknown` instead. CI and local builds must use the same
+> target for artifact compatibility.
 
 ## How Can I Contribute?
 
@@ -55,7 +61,7 @@ Enhancement suggestions are welcome! Please open an issue using the Feature Requ
 Build all contracts to WASM:
 
 ```bash
-cargo build --target wasm32-unknown-unknown --release
+cargo build --target wasm32v1-none --release
 ```
 
 ### Testing

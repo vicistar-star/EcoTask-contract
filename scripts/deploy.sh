@@ -3,11 +3,11 @@ set -euo pipefail
 
 CONTRACT_NAME="${1:?Usage: deploy.sh <contract-name> <network>}"
 NETWORK="${2:-testnet}"
-WASM="target/wasm32-unknown-unknown/release/${CONTRACT_NAME//-/_}.wasm"
+WASM="target/wasm32v1-none/release/${CONTRACT_NAME//-/_}.wasm"
 
 if [ ! -f "$WASM" ]; then
   echo "Error: WASM file not found at $WASM"
-  echo "Build first: cargo build --target wasm32-unknown-unknown --release -p $CONTRACT_NAME"
+  echo "Build first: cargo build --target wasm32v1-none --release -p $CONTRACT_NAME"
   exit 1
 fi
 
