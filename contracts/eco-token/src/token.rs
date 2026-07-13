@@ -31,6 +31,18 @@ pub struct BurnEvent {
 
 #[contractevent]
 #[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TransferFromEvent {
+    #[topic]
+    pub from: Address,
+    #[topic]
+    pub to: Address,
+    #[topic]
+    pub spender: Address,
+    pub amount: i128,
+}
+
+#[contractevent]
+#[derive(Clone, Debug, Eq, PartialEq)]
 pub struct ApproveEvent {
     #[topic]
     pub owner: Address,
@@ -249,7 +261,13 @@ impl TokenContract {
             to_balance.checked_add(amount).expect("balance overflow"),
         );
 
-        TransferEvent { from, to, amount }.publish(&e);
+        TransferFromEvent {
+            from,
+            to,
+            spender: spender.clone(),
+            amount,
+        }
+        .publish(&e);
     }
 }
 
@@ -561,6 +579,53 @@ mod test {
         assert_eq!(client.balance(&owner), 700);
         assert_eq!(client.balance(&recipient), 300);
         assert_eq!(client.allowance(&owner, &spender), 200);
+    }
+
+    #[test]
+    fn test_transfer_from_emits_event() {
+        use soroban_sdk::testutils::Events as _;
+        use soroban_sdk::IntoVal;
+        use soroban_sdk::{vec, Symbol, Val};
+
+        let e = Env::default();
+        let admin = Address::generate(&e);
+        let owner = Address::generate(&e);
+        let spender = Address::generate(&e);
+        let recipient = Address::generate(&e);
+        let contract_id = e.register(TokenContract, ());
+        let client = TokenContractClient::new(&e, &contract_id);
+
+        client.initialize(
+            &admin,
+            &String::from_str(&e, "ECO"),
+            &String::from_str(&e, "ECO"),
+            &7,
+        );
+
+        e.mock_all_auths();
+        client.mint(&owner, &1000);
+        client.approve(&owner, &spender, &500, &(e.ledger().sequence() + 100));
+
+        client.transfer_from(&spender, &owner, &recipient, &300);
+
+        let events = e.events().all();
+        let transfer_from_topics: soroban_sdk::Vec<Val> = vec![
+            &e,
+            Symbol::new(&e, "transfer_from_event").to_val(),
+            (&owner).into_val(&e),
+            (&recipient).into_val(&e),
+            (&spender).into_val(&e),
+        ];
+        let transfer_from_data: Val = soroban_sdk::Map::<Symbol, Val>::from_array(
+            &e,
+            [(Symbol::new(&e, "amount"), (&300i128).into_val(&e))],
+        )
+        .into_val(&e);
+
+        assert_eq!(
+            events,
+            vec![&e, (contract_id, transfer_from_topics, transfer_from_data),]
+        );
     }
 
     #[test]
