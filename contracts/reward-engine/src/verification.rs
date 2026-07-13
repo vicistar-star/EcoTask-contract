@@ -168,6 +168,7 @@ impl RewardEngine {
         verification.reward_amount = reward_amount;
         verification.resolved_at = Some(e.ledger().timestamp());
         storage::write_verification(&e, task_id, &user, &verification);
+        storage::remove_verification_key(&e, task_id, &user);
 
         let registry_id = storage::read_registry(&e);
         e.invoke_contract::<Val>(
@@ -216,6 +217,7 @@ impl RewardEngine {
         verification.status = VerificationStatus::Rejected;
         verification.resolved_at = Some(e.ledger().timestamp());
         storage::write_verification(&e, task_id, &user, &verification);
+        storage::remove_verification_key(&e, task_id, &user);
 
         ProofRejectedEvent {
             oracle,
@@ -239,6 +241,7 @@ impl RewardEngine {
 
         verification.status = VerificationStatus::Disputed;
         storage::write_verification(&e, task_id, &user, &verification);
+        storage::remove_verification_key(&e, task_id, &user);
 
         DisputeRaisedEvent { user, task_id }.publish(&e);
     }
@@ -652,5 +655,35 @@ mod test {
 
         let pending = client.get_pending_verifications();
         assert_eq!(pending.len(), 2);
+    }
+
+    #[test]
+    fn test_resolved_not_in_pending_list() {
+        let (e, admin, oracle, user1, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let user2 = Address::generate(&e);
+        let user3 = Address::generate(&e);
+
+        let proof1 = String::from_str(&e, "QmRes1");
+        client.submit_proof(&oracle, &user1, &task_id, &proof1);
+        assert_eq!(client.get_pending_verifications().len(), 1);
+
+        client.approve_proof(&oracle, &user1, &task_id, &1000);
+        assert_eq!(client.get_pending_verifications().len(), 0);
+
+        let proof2 = String::from_str(&e, "QmRes2");
+        client.submit_proof(&oracle, &user2, &task_id, &proof2);
+        assert_eq!(client.get_pending_verifications().len(), 1);
+
+        client.reject_proof(&oracle, &user2, &task_id);
+        assert_eq!(client.get_pending_verifications().len(), 0);
+
+        let proof3 = String::from_str(&e, "QmRes3");
+        client.submit_proof(&oracle, &user3, &task_id, &proof3);
+        assert_eq!(client.get_pending_verifications().len(), 1);
+
+        client.dispute_proof(&admin, &user3, &task_id);
+        assert_eq!(client.get_pending_verifications().len(), 0);
     }
 }

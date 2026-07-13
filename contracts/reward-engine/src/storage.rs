@@ -120,6 +120,18 @@ pub fn push_verification_key(e: &Env, task_id: u64, user: &Address) {
     e.storage().instance().set(&key, &list);
 }
 
+pub fn remove_verification_key(e: &Env, task_id: u64, user: &Address) {
+    let key = DataKey::VerificationList;
+    let list: Vec<VerificationKey> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
+    let mut filtered: Vec<VerificationKey> = Vec::new(e);
+    for item in list.iter() {
+        if item.task_id != task_id || item.user != *user {
+            filtered.push_back(item);
+        }
+    }
+    e.storage().instance().set(&key, &filtered);
+}
+
 pub fn read_verification_keys(e: &Env) -> Vec<VerificationKey> {
     let key = DataKey::VerificationList;
     e.storage().instance().get(&key).unwrap_or(Vec::new(e))
