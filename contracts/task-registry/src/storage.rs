@@ -30,7 +30,7 @@ pub enum DataKey {
     Task(u64),
     TaskCount,
     Admin,
-    Sponsors,
+    Sponsor(Address),
     Completion(u64, Address),
     CreatorTasks(Address),
 }
@@ -68,28 +68,18 @@ pub fn has_admin(e: &Env) -> bool {
 }
 
 pub fn add_sponsor(e: &Env, sponsor: &Address) {
-    let key = DataKey::Sponsors;
-    let mut sponsors: Vec<Address> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
-    sponsors.push_back(sponsor.clone());
-    e.storage().instance().set(&key, &sponsors);
+    let key = DataKey::Sponsor(sponsor.clone());
+    e.storage().persistent().set(&key, &true);
 }
 
 pub fn remove_sponsor(e: &Env, sponsor: &Address) {
-    let key = DataKey::Sponsors;
-    let sponsors: Vec<Address> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
-    let mut new_sponsors: Vec<Address> = Vec::new(e);
-    for s in sponsors.iter() {
-        if s != *sponsor {
-            new_sponsors.push_back(s);
-        }
-    }
-    e.storage().instance().set(&key, &new_sponsors);
+    let key = DataKey::Sponsor(sponsor.clone());
+    e.storage().persistent().remove(&key);
 }
 
 pub fn is_sponsor(e: &Env, addr: &Address) -> bool {
-    let key = DataKey::Sponsors;
-    let sponsors: Vec<Address> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
-    sponsors.contains(addr)
+    let key = DataKey::Sponsor(addr.clone());
+    e.storage().persistent().has(&key)
 }
 
 pub fn mark_completed(e: &Env, task_id: u64, user: &Address) {
