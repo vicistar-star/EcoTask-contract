@@ -190,7 +190,7 @@ impl RegistryContract {
             panic!("registry: task is not active");
         }
 
-        task.status = TaskStatus::Expired;
+        task.status = TaskStatus::Cancelled;
         storage::write_task(&e, &task);
 
         TaskCancelledEvent {
@@ -512,7 +512,7 @@ mod test {
         client.cancel_task(&admin, &task_id);
 
         let task = client.get_task(&task_id);
-        assert_eq!(task.status, TaskStatus::Expired);
+        assert_eq!(task.status, TaskStatus::Cancelled);
     }
 
     #[test]
@@ -550,6 +550,43 @@ mod test {
 
         client.complete_task(&admin, &task_id, &user);
         client.cancel_task(&admin, &task_id);
+    }
+
+    #[test]
+    #[should_panic(expected = "registry: task is not active")]
+    fn test_complete_cancelled_task() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let user = Address::generate(&e);
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            2,
+            1000,
+        );
+
+        client.cancel_task(&admin, &task_id);
+        client.complete_task(&admin, &task_id, &user);
+    }
+
+    #[test]
+    #[should_panic(expected = "registry: task is not active")]
+    fn test_expire_cancelled_task() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let task_id = create_test_task(
+            &client,
+            &admin,
+            &String::from_str(&e, "tree-planting"),
+            1,
+            1000,
+        );
+
+        client.cancel_task(&admin, &task_id);
+        client.expire_task(&admin, &task_id);
     }
 
     #[test]

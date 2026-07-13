@@ -1,6 +1,6 @@
 {
   "generators": {
-    "address": 3,
+    "address": 2,
     "nonce": 0,
     "mux_id": 0
   },
@@ -23,7 +23,7 @@
                   "string": "tree-planting"
                 },
                 {
-                  "bytes": "0f6a257005371347de93bf24003fb40691a8209885dd2bc1e5c04eaa8d4c465a"
+                  "bytes": "4c4c20924e9753fc273bbb23e10de56f24f0f28147fb25289f2c5e8bbb20d263"
                 },
                 {
                   "i128": "1000"
@@ -32,7 +32,29 @@
                   "u32": 1
                 },
                 {
-                  "u64": "2000"
+                  "u64": "1000"
+                }
+              ]
+            }
+          },
+          "sub_invocations": []
+        }
+      ]
+    ],
+    [
+      [
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+        {
+          "function": {
+            "contract_fn": {
+              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
+              "function_name": "cancel_task",
+              "args": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM"
+                },
+                {
+                  "u64": "0"
                 }
               ]
             }
@@ -46,7 +68,7 @@
   "ledger": {
     "protocol_version": 26,
     "sequence_number": 0,
-    "timestamp": 3000,
+    "timestamp": 0,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -63,6 +85,26 @@
               "key": {
                 "ledger_key_nonce": {
                   "nonce": "801925984706572462"
+                }
+              },
+              "durability": "temporary",
+              "val": "void"
+            }
+          },
+          "ext": "v0"
+        },
+        "live_until": 6311999
+      },
+      {
+        "entry": {
+          "last_modified_ledger_seq": 0,
+          "data": {
+            "contract_data": {
+              "ext": "v0",
+              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+              "key": {
+                "ledger_key_nonce": {
+                  "nonce": "5541220902715666415"
                 }
               },
               "durability": "temporary",
@@ -137,7 +179,7 @@
                       "symbol": "created_at"
                     },
                     "val": {
-                      "u64": "1000"
+                      "u64": "0"
                     }
                   },
                   {
@@ -153,7 +195,7 @@
                       "symbol": "expires_at"
                     },
                     "val": {
-                      "u64": "2000"
+                      "u64": "1000"
                     }
                   },
                   {
@@ -169,7 +211,7 @@
                       "symbol": "location_hash"
                     },
                     "val": {
-                      "bytes": "0f6a257005371347de93bf24003fb40691a8209885dd2bc1e5c04eaa8d4c465a"
+                      "bytes": "4c4c20924e9753fc273bbb23e10de56f24f0f28147fb25289f2c5e8bbb20d263"
                     }
                   },
                   {
@@ -195,7 +237,7 @@
                     "val": {
                       "vec": [
                         {
-                          "symbol": "Active"
+                          "symbol": "Cancelled"
                         }
                       ]
                     }
