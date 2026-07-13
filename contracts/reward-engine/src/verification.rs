@@ -239,6 +239,12 @@ impl RewardEngine {
             None => panic!("engine: verification not found"),
         };
 
+        if verification.status != VerificationStatus::Pending
+            && verification.status != VerificationStatus::Rejected
+        {
+            panic!("engine: verification is not disputable");
+        }
+
         verification.status = VerificationStatus::Disputed;
         storage::write_verification(&e, task_id, &user, &verification);
         storage::remove_verification_key(&e, task_id, &user);
@@ -530,6 +536,50 @@ mod test {
         client.submit_proof(&oracle, &user, &task_id, &proof_cid);
 
         client.resolve_dispute(&admin, &user, &task_id, &true, &1000);
+    }
+
+    #[test]
+    #[should_panic(expected = "engine: verification is not disputable")]
+    fn test_dispute_approved_fails() {
+        let (e, admin, oracle, user, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let proof_cid = String::from_str(&e, "QmApproved");
+        client.submit_proof(&oracle, &user, &task_id, &proof_cid);
+        client.approve_proof(&oracle, &user, &task_id, &500);
+
+        client.dispute_proof(&admin, &user, &task_id);
+    }
+
+    #[test]
+    #[should_panic(expected = "engine: verification is not disputable")]
+    fn test_dispute_already_disputed_fails() {
+        let (e, admin, oracle, user, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let proof_cid = String::from_str(&e, "QmAlreadyDisputed");
+        client.submit_proof(&oracle, &user, &task_id, &proof_cid);
+        client.dispute_proof(&admin, &user, &task_id);
+
+        client.dispute_proof(&admin, &user, &task_id);
+    }
+
+    #[test]
+    fn test_dispute_rejected_succeeds() {
+        let (e, admin, oracle, user, task_id, client) = setup();
+        e.mock_all_auths_allowing_non_root_auth();
+
+        let proof_cid = String::from_str(&e, "QmRejectedDispute");
+        client.submit_proof(&oracle, &user, &task_id, &proof_cid);
+        client.reject_proof(&oracle, &user, &task_id);
+
+        let verification = client.get_verification(&task_id, &user);
+        assert_eq!(verification.status, VerificationStatus::Rejected);
+
+        client.dispute_proof(&admin, &user, &task_id);
+
+        let verification = client.get_verification(&task_id, &user);
+        assert_eq!(verification.status, VerificationStatus::Disputed);
     }
 
     #[test]
