@@ -23,16 +23,16 @@
                   "string": "tree-planting"
                 },
                 {
-                  "bytes": "d77f7243da8d86bad39033de085c66ca2bfbde04e8b055823d6135540ae7f50b"
+                  "bytes": "2491eeb097549c8bd475e2ab38858b13f465b3f0b6a83b15341871ce282a6014"
                 },
                 {
                   "i128": "1000"
                 },
                 {
-                  "u32": 1
+                  "u32": 2
                 },
                 {
-                  "u64": "2000"
+                  "u64": "100000"
                 }
               ]
             }
@@ -41,12 +41,39 @@
         }
       ]
     ],
+    [
+      [
+        "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+        {
+          "function": {
+            "contract_fn": {
+              "contract_address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
+              "function_name": "complete_task",
+              "args": [
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM"
+                },
+                {
+                  "u64": "0"
+                },
+                {
+                  "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                }
+              ]
+            }
+          },
+          "sub_invocations": []
+        }
+      ]
+    ],
+    [],
+    [],
     []
   ],
   "ledger": {
     "protocol_version": 26,
-    "sequence_number": 0,
-    "timestamp": 3000,
+    "sequence_number": 5000,
+    "timestamp": 0,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -79,6 +106,56 @@
           "data": {
             "contract_data": {
               "ext": "v0",
+              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAD2KM",
+              "key": {
+                "ledger_key_nonce": {
+                  "nonce": "5541220902715666415"
+                }
+              },
+              "durability": "temporary",
+              "val": "void"
+            }
+          },
+          "ext": "v0"
+        },
+        "live_until": 6311999
+      },
+      {
+        "entry": {
+          "last_modified_ledger_seq": 0,
+          "data": {
+            "contract_data": {
+              "ext": "v0",
+              "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
+              "key": {
+                "vec": [
+                  {
+                    "symbol": "Completion"
+                  },
+                  {
+                    "u64": "0"
+                  },
+                  {
+                    "address": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHK3M"
+                  }
+                ]
+              },
+              "durability": "persistent",
+              "val": {
+                "bool": true
+              }
+            }
+          },
+          "ext": "v0"
+        },
+        "live_until": 9095
+      },
+      {
+        "entry": {
+          "last_modified_ledger_seq": 0,
+          "data": {
+            "contract_data": {
+              "ext": "v0",
               "contract": "CAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFCT4",
               "key": {
                 "vec": [
@@ -102,7 +179,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 9095
       },
       {
         "entry": {
@@ -129,7 +206,7 @@
                       "symbol": "completions"
                     },
                     "val": {
-                      "u32": 0
+                      "u32": 1
                     }
                   },
                   {
@@ -137,7 +214,7 @@
                       "symbol": "created_at"
                     },
                     "val": {
-                      "u64": "1000"
+                      "u64": "0"
                     }
                   },
                   {
@@ -153,7 +230,7 @@
                       "symbol": "expires_at"
                     },
                     "val": {
-                      "u64": "2000"
+                      "u64": "100000"
                     }
                   },
                   {
@@ -169,7 +246,7 @@
                       "symbol": "location_hash"
                     },
                     "val": {
-                      "bytes": "d77f7243da8d86bad39033de085c66ca2bfbde04e8b055823d6135540ae7f50b"
+                      "bytes": "2491eeb097549c8bd475e2ab38858b13f465b3f0b6a83b15341871ce282a6014"
                     }
                   },
                   {
@@ -177,7 +254,7 @@
                       "symbol": "max_completions"
                     },
                     "val": {
-                      "u32": 1
+                      "u32": 2
                     }
                   },
                   {
@@ -214,7 +291,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 9095
       },
       {
         "entry": {
@@ -262,7 +339,7 @@
           },
           "ext": "v0"
         },
-        "live_until": 4095
+        "live_until": 9095
       },
       {
         "entry": {

@@ -36,12 +36,12 @@ pub enum DataKey {
 
 pub fn write_task(e: &Env, task: &Task) {
     let key = DataKey::Task(task.id);
-    e.storage().instance().set(&key, task);
+    e.storage().persistent().set(&key, task);
 }
 
 pub fn read_task(e: &Env, task_id: u64) -> Option<Task> {
     let key = DataKey::Task(task_id);
-    e.storage().instance().get(&key)
+    e.storage().persistent().get(&key)
 }
 
 pub fn next_task_id(e: &Env) -> u64 {
@@ -103,12 +103,12 @@ pub fn is_completed(e: &Env, task_id: u64, user: &Address) -> bool {
 
 pub fn push_creator_task(e: &Env, creator: &Address, task_id: u64) {
     let key = DataKey::CreatorTasks(creator.clone());
-    let mut ids: Vec<u64> = e.storage().instance().get(&key).unwrap_or(Vec::new(e));
+    let mut ids: Vec<u64> = e.storage().persistent().get(&key).unwrap_or(Vec::new(e));
     ids.push_back(task_id);
-    e.storage().instance().set(&key, &ids);
+    e.storage().persistent().set(&key, &ids);
 }
 
 pub fn read_creator_tasks(e: &Env, creator: &Address) -> Vec<u64> {
     let key = DataKey::CreatorTasks(creator.clone());
-    e.storage().instance().get(&key).unwrap_or(Vec::new(e))
+    e.storage().persistent().get(&key).unwrap_or(Vec::new(e))
 }

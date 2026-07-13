@@ -23,7 +23,7 @@
                   "string": "tree-planting"
                 },
                 {
-                  "bytes": "d77f7243da8d86bad39033de085c66ca2bfbde04e8b055823d6135540ae7f50b"
+                  "bytes": "02e012f69ff8ab7b34bef8aa6b88921320de232e3d07bde7e901586ad2a9993d"
                 },
                 {
                   "i128": "1000"
@@ -32,7 +32,7 @@
                   "u32": 1
                 },
                 {
-                  "u64": "2000"
+                  "u64": "1000"
                 }
               ]
             }
@@ -46,7 +46,7 @@
   "ledger": {
     "protocol_version": 26,
     "sequence_number": 0,
-    "timestamp": 3000,
+    "timestamp": 0,
     "network_id": "0000000000000000000000000000000000000000000000000000000000000000",
     "base_reserve": 0,
     "min_persistent_entry_ttl": 4096,
@@ -137,7 +137,7 @@
                       "symbol": "created_at"
                     },
                     "val": {
-                      "u64": "1000"
+                      "u64": "0"
                     }
                   },
                   {
@@ -153,7 +153,7 @@
                       "symbol": "expires_at"
                     },
                     "val": {
-                      "u64": "2000"
+                      "u64": "1000"
                     }
                   },
                   {
@@ -169,7 +169,7 @@
                       "symbol": "location_hash"
                     },
                     "val": {
-                      "bytes": "d77f7243da8d86bad39033de085c66ca2bfbde04e8b055823d6135540ae7f50b"
+                      "bytes": "02e012f69ff8ab7b34bef8aa6b88921320de232e3d07bde7e901586ad2a9993d"
                     }
                   },
                   {

@@ -573,4 +573,32 @@ mod test {
         let empty = client.get_tasks_by_creator(&other);
         assert_eq!(empty.len(), 0);
     }
+
+    #[test]
+    fn test_task_survives_ledger_advancement() {
+        let (e, admin, client) = setup();
+        e.mock_all_auths();
+
+        let task_type = String::from_str(&e, "tree-planting");
+        let task_id = create_test_task(&client, &admin, &task_type, 2, 100_000);
+
+        let user1 = Address::generate(&e);
+        client.complete_task(&admin, &task_id, &user1);
+
+        // Advance the ledger well past the default instance storage TTL
+        // (instance TTL is ~100 ledgers; persistent TTL is ~4096).
+        e.ledger().set_sequence_number(5000);
+
+        let task = client.get_task(&task_id);
+        assert_eq!(task.id, task_id);
+        assert_eq!(task.creator, admin);
+        assert_eq!(task.task_type, task_type);
+        assert_eq!(task.completions, 1);
+        assert_eq!(task.status, TaskStatus::Active);
+        assert!(client.is_task_completed(&task_id, &user1));
+
+        let ids = client.get_tasks_by_creator(&admin);
+        assert_eq!(ids.len(), 1);
+        assert_eq!(ids.get(0).unwrap(), task_id);
+    }
 }
